@@ -2,17 +2,20 @@ var config = require('./config');
 var PersonGenerator = require('./lib/generate');
 var elasticsearch = require('elasticsearch');
 
-var insertData = function () {
-	console.log(data);
-	client.bulk({
-		body : data
-	}, function (err, resp) {
-		if (err)
-			console.log(err);
-		else
-			console.log(resp);
-	});
-	data = [];
+var insertData = function (aData) {
+	if (aData.length > 0) {
+		console.log("Injecting " + aData.length / 2 + " entries.");
+		client.bulk({
+			body : aData
+		}, function (err, resp) {
+			if (err) {
+				console.log(err);
+				console.log(aData);
+			} else {
+				console.log(aData.length / 2 + " entries injected.");
+			}
+		});
+	}
 };
 
 if (process.argv.length < 3) {
@@ -29,7 +32,8 @@ var client = new elasticsearch.Client({
 
 var data = [];
 
-for (var i = 0; i < nbr * 2 ; i = i + 2) {
+for (var i = 0; i < nbr * 2; i = i + 2) {
+
 	var person = personGenerator.generate();
 
 	data[i % (config.elasticsearch.bulkSize * 2)] = {
@@ -38,14 +42,16 @@ for (var i = 0; i < nbr * 2 ; i = i + 2) {
 			_type : config.elasticsearch.type
 		}
 	};
+
 	data[i % (config.elasticsearch.bulkSize * 2) + 1] = person;
 
-	if ((i > 0) && (i % (config.elasticsearch.bulkSize * 2) == 0)) {
-		console.log(i);
-		insertData();
+	console.log(i + " "  + (i + 2) % (config.elasticsearch.bulkSize * 2));
+
+	if ((i > 0) && ((i + 2) % (config.elasticsearch.bulkSize * 2) == 0)) {
+		dataToInsert = data.splice(0, config.elasticsearch.bulkSize * 2);
+		console.log(dataToInsert.length);
+		insertData(dataToInsert);
 	}
 }
 
-if (i % config.elasticsearch.bulkSize > 0) {
-	insertData();
-}
+insertData(data);
