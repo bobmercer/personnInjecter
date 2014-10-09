@@ -1,0 +1,9 @@
+{
+	"name" : "personInjector",
+	"description" : "Elasticsearch fake persons injector",
+	"author" : "Yann Barraud <yann.barraud@gmail.com>",
+	"dependencies" : {
+		"elasticsearch" : "*",
+		"faker" : "*"
+	}
+}
