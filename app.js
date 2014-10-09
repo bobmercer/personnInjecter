@@ -7,13 +7,11 @@ var insertData = function (aData) {
 		console.log("Injecting " + aData.length / 2 + " entries.");
 		client.bulk({
 			body : aData
-		}, function (err, resp) {
-			if (err) {
-				console.log(err);
-				console.log(aData);
-			} else {
-				console.log(aData.length / 2 + " entries injected.");
-			}
+		}).then(function (resp) {
+			console.log(resp.items.length + " entries injected.");
+		}, function (err) {
+			console.trace(err);
+			console.trace(aData);
 		});
 	}
 };
