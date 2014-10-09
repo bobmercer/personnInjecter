@@ -2,51 +2,64 @@ var config = require('./config');
 var PersonGenerator = require('./lib/generate');
 var elasticsearch = require('elasticsearch');
 
-var insertData = function (aData) {
-	if (aData.length > 0) {
-		console.log("Injecting " + aData.length / 2 + " entries.");
+var insertData = function (dataToInject) {
+	if (dataToInject.length > 0) {
+		console.log("Injecting " + dataToInject.length / 2 + " entries.");
 		client.bulk({
-			body : aData
+			body : dataToInject
 		}).then(function (resp) {
 			console.log(resp.items.length + " entries injected.");
+			runCycle();
 		}, function (err) {
-			console.trace(err);
-			console.trace(aData);
+			console.log(err);
+			console.trace(dataToInject);
 		});
 	}
 };
 
-if (process.argv.length < 3) {
-	process.exit(1);
-}
+var generateData = function (size) {
+	var data = [];
+	for (var i = 0; i < size * 2; i = i + 2) {
+
+		var person = personGenerator.generate();
+
+		data[i] = {
+			index : {
+				_index : config.elasticsearch.index,
+				_type : config.elasticsearch.type
+			}
+		};
+
+		data[i + 1] = person;
+	}
+	return data;
+};
+
+var runCycle = function () {
+	if (nbr > 0) {
+		if (nbr > config.elasticsearch.bulkSize) {
+			nbr = nbr - config.elasticsearch.bulkSize;
+			data = generateData(config.elasticsearch.bulkSize);
+			insertData(data);
+		} else {
+			generateData(nbr);
+			data = generateData(config.elasticsearch.bulkSize);
+			nbr = 0;
+			insertData(data);
+		}
+	}
+};
 
 var nbr = process.argv[2];
-
-personGenerator = new PersonGenerator('fr');
 
 var client = new elasticsearch.Client({
 		host : config.elasticsearch.host
 	});
 
-var data = [];
+personGenerator = new PersonGenerator('fr');
 
-for (var i = 0; i < nbr * 2; i = i + 2) {
-
-	var person = personGenerator.generate();
-
-	data[i % (config.elasticsearch.bulkSize * 2)] = {
-		index : {
-			_index : config.elasticsearch.index,
-			_type : config.elasticsearch.type
-		}
-	};
-
-	data[i % (config.elasticsearch.bulkSize * 2) + 1] = person;
-
-	if ((i > 0) && ((i + 2) % (config.elasticsearch.bulkSize * 2) == 0)) {
-		dataToInsert = data.splice(0, config.elasticsearch.bulkSize * 2);
-		insertData(dataToInsert);
-	}
+if (process.argv.length < 3) {
+	process.exit(1);
 }
 
-insertData(data);
+runCycle();
