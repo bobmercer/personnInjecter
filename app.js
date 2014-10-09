@@ -43,17 +43,20 @@ var runCycle = function () {
 			insertData(data);
 		} else {
 			generateData(nbr);
-			data = generateData(config.elasticsearch.bulkSize);
+			data = generateData(nbr);
 			nbr = 0;
 			insertData(data);
 		}
+	} else {
+		process.exit(0);
 	}
 };
 
 var nbr = process.argv[2];
 
 var client = new elasticsearch.Client({
-		host : config.elasticsearch.host
+		host : config.elasticsearch.host,
+		keepAlive: false
 	});
 
 personGenerator = new PersonGenerator('fr');
