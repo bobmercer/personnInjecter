@@ -56,7 +56,7 @@ var nbr = process.argv[2];
 
 var client = new elasticsearch.Client({
 		host : config.elasticsearch.host,
-		keepAlive: false
+		keepAlive : false
 	});
 
 personGenerator = new PersonGenerator('fr');
@@ -65,4 +65,8 @@ if (process.argv.length < 3) {
 	process.exit(1);
 }
 
-runCycle();
+client.cluster.health([
+		waitForStatus = "yellow",
+		waitForActiveShards = 5], function () {
+	runCycle()
+});
