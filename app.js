@@ -45,11 +45,8 @@ for (var i = 0; i < nbr * 2; i = i + 2) {
 
 	data[i % (config.elasticsearch.bulkSize * 2) + 1] = person;
 
-	console.log(i + " "  + (i + 2) % (config.elasticsearch.bulkSize * 2));
-
 	if ((i > 0) && ((i + 2) % (config.elasticsearch.bulkSize * 2) == 0)) {
 		dataToInsert = data.splice(0, config.elasticsearch.bulkSize * 2);
-		console.log(dataToInsert.length);
 		insertData(dataToInsert);
 	}
 }
